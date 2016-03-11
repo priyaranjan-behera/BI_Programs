@@ -6,6 +6,8 @@ import nltk
 import random
 import csv
 import math
+import copy
+import numpy as np
 random.seed(0)
 
 
@@ -92,14 +94,68 @@ def getHighestUnspentBalanceAdvertiser(bidders):
 
 	return [bidder, bidValue]	
 
+def findCompetitiveRatio(biddinginfofile, queriesfile, algorithm):
+
+	budgetdict_org = getBudgetDict(biddinginfofile)
+	biddict_org = getBidsDict(biddinginfofile)
+	
+	inputList = []
+	revenueList = []
+
+	file = open(queriesfile, 'r')
+
+	for line in file:
+		inputList.append(line.replace('\n', ''))
+
+	#print "Calculating Competitive Ratio. Iterations: "
+
+	for i in range(0,10):
+		#print i+1
+		budgetdict = copy.deepcopy(budgetdict_org)
+		biddict = copy.deepcopy(biddict_org)
+		revenue = 0
+		random.shuffle(inputList)
+		for line in inputList:
+
+			bidders = getBiddingAdvertisers(biddict, budgetdict, line)
+			#print "Processing", line, bidders
+			if not bidders:
+				continue
+			else:
+				
+				if(algorithm == "msvv"):
+					highBidder = getHighestMSSVAdvertiser(bidders)
+				elif(algorithm == "balance"):
+					highBidder = getHighestUnspentBalanceAdvertiser(bidders)
+				else:
+					highBidder = getHighestBiddingAdvertiser(bidders)
+				#print 'allocating word ',  line, ' to ', highBidder[0]
+				budgetdict[highBidder[0]][1] = budgetdict[highBidder[0]][1] - highBidder[1]
+				revenue = revenue + highBidder[1]
+
+		revenueList.append(revenue)
+		#print revenueList
+
+	ALG = np.mean(revenueList)
+	OPT = 0
+
+	for adv in budgetdict:
+		OPT += budgetdict[adv][0]
+
+	#print "OPT = ", OPT
+	#print "ALG = ", ALG
+	CR = float(ALG)/float(OPT)
+	#print "Competitive Ratio: ", CR
+
+	return CR
 
 
-def processGreedyQueries(biddinginfofile, queriesfile):
+def processQueries(biddinginfofile, queriesfile, algorithm):
 
 	budgetdict = getBudgetDict(biddinginfofile)
 	biddict = getBidsDict(biddinginfofile)
 
-	print biddict
+	#print biddict
 	revenue = 0
 
 	file = open(queriesfile, 'r')
@@ -107,71 +163,24 @@ def processGreedyQueries(biddinginfofile, queriesfile):
 	for line in file:
 		bidders = getBiddingAdvertisers(biddict, budgetdict, line.replace('\n', ''))
 
-		print "Processing", line, bidders
+		#print "Processing", line, bidders
 		if not bidders:
 			continue
 		else:
-			
-			highBidder = getHighestBiddingAdvertiser(bidders)
-			print 'allocating word ',  line, ' to ', highBidder[0]
+			if(algorithm == "msvv"):
+				highBidder = getHighestMSSVAdvertiser(bidders)
+			elif(algorithm == "balance"):
+				highBidder = getHighestUnspentBalanceAdvertiser(bidders)
+			else:
+				highBidder = getHighestBiddingAdvertiser(bidders)
+			#print 'allocating word ',  line, ' to ', highBidder[0]
 			budgetdict[highBidder[0]][1] = budgetdict[highBidder[0]][1] - highBidder[1]
 			revenue = revenue + highBidder[1]
 			
 
-	print "Total Generated Revenue: ", revenue
+	#print "Total Generated Revenue: ", revenue
 
-def processMSSVQueries(biddinginfofile, queriesfile):
-
-	budgetdict = getBudgetDict(biddinginfofile)
-	biddict = getBidsDict(biddinginfofile)
-
-	print biddict
-	revenue = 0
-
-	file = open(queriesfile, 'r')
-
-	for line in file:
-		bidders = getBiddingAdvertisers(biddict, budgetdict, line.replace('\n', ''))
-
-		print "Processing", line, bidders
-		if not bidders:
-			continue
-		else:
-			
-			highBidder = getHighestMSSVAdvertiser(bidders)
-			print 'allocating word ',  line, ' to ', highBidder[0]
-			budgetdict[highBidder[0]][1] = budgetdict[highBidder[0]][1] - highBidder[1]
-			revenue = revenue + highBidder[1]
-			
-
-	print "Total Generated Revenue: ", revenue
-
-
-def processUnspentBalanceQueries(biddinginfofile, queriesfile):
-
-	budgetdict = getBudgetDict(biddinginfofile)
-	biddict = getBidsDict(biddinginfofile)
-
-	print biddict
-	revenue = 0
-
-	file = open(queriesfile, 'r')
-
-	for line in file:
-		bidders = getBiddingAdvertisers(biddict, budgetdict, line.replace('\n', ''))
-
-		print "Processing", line, bidders
-		if not bidders:
-			continue
-		else:
-			
-			highBidder = getHighestUnspentBalanceAdvertiser(bidders)
-			print 'allocating word ',  line, ' to ', highBidder[0]
-			budgetdict[highBidder[0]][1] = budgetdict[highBidder[0]][1] - highBidder[1]
-			revenue = revenue + highBidder[1]
-			
-
-	print "Total Generated Revenue: ", revenue
+	return revenue
 
 
 #budgetdict = getBudgetDict('bidder_dataset.csv')
@@ -191,4 +200,31 @@ def processUnspentBalanceQueries(biddinginfofile, queriesfile):
 
 #processMSSVQueries('bidder_dataset.csv', 'queries.txt')
 #processGreedyQueries('bidder_dataset.csv', 'queries.txt')
-processUnspentBalanceQueries('bidder_dataset.csv', 'queries.txt')
+#processUnspentBalanceQueries('bidder_dataset.csv', 'queries.txt')
+#findCompetitiveRatio('bidder_dataset.csv', 'queries.txt', 'greedy')
+#processQueries('bidder_dataset.csv', 'queries.txt', 'balance')
+
+def main(argv):
+	
+	if(len(argv) > 0):
+		algorithm = argv[0]
+		
+		if(algorithm in ["greedy", "msvv", "balance"]):
+			revenue = processQueries('bidder_dataset.csv', 'queries.txt', algorithm)
+			CR = findCompetitiveRatio('bidder_dataset.csv', 'queries.txt', algorithm)
+			print "Algorithm: ", algorithm
+			print "Revenue: ", revenue
+			print "Competitive Ratio: ", CR
+		else:
+			print "This program only takes greedy, mssv or balance as argument"
+
+	else:
+		for algorithm in ["greedy", "msvv", "balance"]:
+			revenue = processQueries('bidder_dataset.csv', 'queries.txt', algorithm)
+			CR = findCompetitiveRatio('bidder_dataset.csv', 'queries.txt', algorithm)
+			print "Algorithm: ", algorithm
+			print "Revenue: ", round(revenue,2)
+			print "Competitive Ratio: ", round(CR,2)
+
+if __name__ == "__main__":
+   main(sys.argv[1:])
