@@ -24,7 +24,8 @@ def main(argv):
 	#print(attributes)
 
 
-	graph.vs["community"] = range(len(graph.get_edgelist()))
+	graph.vs["community"] = range(len(graph.vs))
+	graph.es["weight"] = [1]*len(graph.es)
 	#print(graph.get_edgelist())
 	#print(graph.vs["community"])
 
@@ -36,7 +37,7 @@ def main(argv):
 		editsince = 0;
 		while(1):
 			vertex = random.randint(0, len(graph.vs)-1)
-			print('Processing Random Vertex:', vertex)
+			print('Processing Random Vertex: i+1', vertex)
 			cm_gain = 0;
 			edit = 0;
 			editsince = 0;
@@ -62,6 +63,14 @@ def main(argv):
 			graph.vs[vertex]['community'] = new_community
 
 		print("Total number of communities is: ", len(np.unique(graph.vs["community"])))
+		print "End of Phase1"
+
+
+		#Phase2 Begins
+		graph2 = graph.contract_vertices(graph.vs["community"], combine_attrs=dict(weight="sum", community="first"))
+
+		graph = graph2
+
 
 
 		for community in np.unique(graph.vs["community"]):
