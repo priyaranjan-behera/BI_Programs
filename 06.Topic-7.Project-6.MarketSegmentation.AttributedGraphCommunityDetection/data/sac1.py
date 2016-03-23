@@ -62,13 +62,12 @@ def main(argv):
 				if(temp_cm_gain > cm_gain):
 					new_community = community
 					cm_gain = temp_cm_gain
-					edit = 1
 
-			if(edit == 1):
+			if(graph.vs[vertex]['community'] != new_community):
 				editsince = 0;
 			else:
 				editsince += 1
-				if(editsince > 5):
+				if(editsince > 50):
 					break;
 
 			print('editsince = ', editsince)
@@ -83,10 +82,13 @@ def main(argv):
 		#Phase2 Begins
 		print "Start of Phase2"
 		communityList = graph.vs["community"]
-		graph.contract_vertices(communityList, combine_attrs=mean)
-		graph.simplify(combine_edges=sum)
+		#graph.contract_vertices(communityList, combine_attrs=mean)
+		#graph.simplify(combine_edges=sum)
 		#graph.vs["community"] = communityList
+		vc = VertexClustering(graph, membership=communityList)
+		graph = vc.cluster_graph(combine_vertices=mean, combine_edges=sum)
 
+		graph.vs["community"] = communityList
 
 
 		print "After Phase 2"
@@ -111,6 +113,7 @@ def main(argv):
 					f.write(",")
 			f.write('\n')
 
+	plot(vc)
 	graph.vs['color'] = [known_colors.keys()[community] for community in graph.vs["community"]]
 
 	#plot(graph, 'communities.pdf', layout=layout)
