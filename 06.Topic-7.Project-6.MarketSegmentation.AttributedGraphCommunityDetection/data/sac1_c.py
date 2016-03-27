@@ -24,7 +24,6 @@ def main(argv):
 	graph = read('fb_caltech_small_edgelist.txt')
 	#attributes = np.loadtxt('fb_caltech_small_attrlist.csv', skiprows=1, delimiter=',')
 	attributes = []
-	#print(attributes
 	with open('fb_caltech_small_attrlist.csv') as csvfile:
 		reader = csv.DictReader(csvfile)
 		for row in reader:
@@ -38,24 +37,24 @@ def main(argv):
 	for i in range(len(attributes)):
 		for key in attributes[i].keys():
 			graph.vs[i][key] = int(attributes[i][key])
-	#print(graph.get_edgelist())
-	#print(graph.vs["community"])
+	##print(graph.get_edgelist())
+	##print(graph.vs["community"])
 	keys = attributes[0].keys()
 
 	for i in range(15):
-		print('Starting Iteration: ', i+1)
-		print "Total vertices", len(graph.vs)
+		##print('Starting Iteration: ', i+1)
+		##print "Total vertices", len(graph.vs)
 
-		print graph.vs
+		##print graph.vs
 		editsince = 0;
 		oldCommunityList = graph.vs["community"]
 		while(1):
 			vertex = random.randint(0, len(graph.vs)-1)
-			print('Processing Random Vertex:', i+1, vertex)
+			#print('Processing Random Vertex:', i+1, vertex)
 			cm_gain = 0;
 			edit = 0;
 			#if(vertex%20 == 0):
-			#	print 'Vertex:',vertex
+			#	#print 'Vertex:',vertex
 
 			new_community = graph.vs[vertex]['community']
 			old_community = graph.vs[vertex]['community']
@@ -72,18 +71,18 @@ def main(argv):
 				if(editsince > 50):
 					break;
 
-			print('editsince = ', editsince)
+			#print('editsince = ', editsince)
 
-			print 'Moving from: ', graph.vs[vertex]['community'], 'to: ', new_community
+			#print 'Moving from: ', graph.vs[vertex]['community'], 'to: ', new_community
 			graph.vs[vertex]['community'] = new_community
 
-		print("Total number of communities is: ", len(np.unique(graph.vs["community"])))
-		print "End of Phase1"
+		#print("Total number of communities is: ", len(np.unique(graph.vs["community"])))
+		#print "End of Phase1"
 
 
 
 		#Phase2 Begins
-		print "Start of Phase2"
+		#print "Start of Phase2"
 		communityList = graph.vs["community"]
 
 		for i in range(len(global_community_list)):
@@ -120,10 +119,10 @@ def main(argv):
 		#graph.vs["community"] = communityList
 
 
-		print "After Phase 2"
+		#print "After Phase 2"
 
-		print('The Edgelist is: ',graph.get_edgelist())
-		print('Communities are: ', graph.vs["community"])
+		#print('The Edgelist is: ',graph.get_edgelist())
+		#print('Communities are: ', graph.vs["community"])
 
 		
 
@@ -164,7 +163,7 @@ def getCompositeModularityGain(graph, community, newPoint, keys, alpha):
 				list1.append(graph.vs[index][key])
 				list2.append(graph.vs[newPoint][key])
 			similarity = 1-scipy.spatial.distance.cosine(list1, list2)
-			#print 'similarity =', similarity 
+			##print 'similarity =', similarity 
 			sim_sum += similarity
 			comm_size += 1
 
@@ -179,10 +178,10 @@ def getCompositeModularityGain(graph, community, newPoint, keys, alpha):
 
 	DeltaQ = (alpha * DeltaQNewmann) + ((1-alpha) * DeltaQAttr)
 
-	print 'For community = ', community
-	print 'DeltaQNewmann =',DeltaQNewmann
+	#print 'For community = ', community
+	#print 'DeltaQNewmann =',DeltaQNewmann
 
-	print 'DeltaQAttr =',DeltaQAttr 
+	#print 'DeltaQAttr =',DeltaQAttr 
 
 	return DeltaQ
 
