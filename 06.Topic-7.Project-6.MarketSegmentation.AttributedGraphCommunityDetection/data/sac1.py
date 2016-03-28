@@ -48,11 +48,14 @@ def main(argv):
 
 		print graph.vs
 		editsince = 0;
+		commCountEditSince = 0;
 		oldCommunityList = graph.vs["community"]
 		while(1):
 			vertex = random.randint(0, len(graph.vs)-1)
 			print('Processing Random Vertex:', i+1, vertex)
-			cm_gain = 0;
+			print('Number of communities left: ', len(np.unique(graph.vs["community"])))
+			preCommunitiesLeft = len(np.unique(graph.vs["community"]))
+			cm_gain = 0.0;
 			edit = 0;
 			#if(vertex%20 == 0):
 			#	print 'Vertex:',vertex
@@ -72,10 +75,19 @@ def main(argv):
 				if(editsince > 50):
 					break;
 
-			print('editsince = ', editsince)
-
 			print 'Moving from: ', graph.vs[vertex]['community'], 'to: ', new_community
 			graph.vs[vertex]['community'] = new_community
+
+			postCommunitiesLeft = len(np.unique(graph.vs["community"]))
+			if(preCommunitiesLeft != postCommunitiesLeft):
+				commCountEditSince = 0;
+			else:
+				commCountEditSince += 1;
+				if(commCountEditSince > 1000):
+					break;
+
+			print('editsince = ', editsince)
+			print('commCountEditSince = ', commCountEditSince)
 
 		print("Total number of communities is: ", len(np.unique(graph.vs["community"])))
 		print "End of Phase1"
@@ -133,8 +145,8 @@ def main(argv):
 				if global_community_list[index]== community:
 					print index, ",",
 			print
-
-	with open('communities.txt', 'w') as f:
+	filename = 'communities' + str(alpha)
+	with open(filename, 'w') as f:
 		for community in np.unique(graph.vs["community"]):
 			for index in range(len(global_community_list)):
 				if global_community_list[index]== community:
@@ -153,7 +165,7 @@ def getCompositeModularityGain(graph, community, newPoint, keys, alpha):
 	structural_modularity_old = graph.modularity(communityList)
 
 	comm_size = 0;
-	sim_sum = 0;
+	sim_sum = 0.0;
 	comm_count = len(np.unique(communityList))
 	for index in range(len(graph.vs)):
 		if(graph.vs[index]['community'] == community):
@@ -169,7 +181,7 @@ def getCompositeModularityGain(graph, community, newPoint, keys, alpha):
 			comm_size += 1
 
 	if(sim_sum != 0):
-		DeltaQAttr = float(sim_sum)/(math.pow(float(comm_size),2) * comm_count)
+		DeltaQAttr = float(sim_sum)/(math.pow(float(comm_size),2) * float(comm_count))
 	else:
 		DeltaQAttr = 0;
 	communityList[newPoint] = community
@@ -177,12 +189,11 @@ def getCompositeModularityGain(graph, community, newPoint, keys, alpha):
 
 	DeltaQNewmann = structural_modularity_new - structural_modularity_old
 
-	DeltaQ = (alpha * DeltaQNewmann) + ((1-alpha) * DeltaQAttr)
+	DeltaQ = (float(alpha) * float(DeltaQNewmann)) + ((1.0-float(alpha)) * float(DeltaQAttr))
 
-	print 'For community = ', community
-	print 'DeltaQNewmann =',DeltaQNewmann
-
-	print 'DeltaQAttr =',DeltaQAttr 
+	#print 'For community = ', community
+	#print 'DeltaQNewmann =',DeltaQNewmann
+	#print 'DeltaQAttr =',DeltaQAttr 
 
 	return DeltaQ
 
