@@ -174,6 +174,12 @@ def records_to_graph():
         nodedict[new_node.name] = new_node
         node_count += 1
 
+    for user in ratings:
+      new_node = Node(node_count, user, 'user')
+      nodelist.append(new_node)
+      nodedict[new_node.name] = new_node
+      node_count += 1
+
     # Add edges between users and movie-rating nodes
     # Add edges between movies and directors
     # Add edges between movies and actors
@@ -185,7 +191,36 @@ def records_to_graph():
     #           movie_node.neighbors.append(director_node)
     # YOUR CODE HERE
 
-    #Adding edges between users and movie-rating
+    #Adding edges between users and movie-rating nodes
+    for user in ratings:
+      user_ratings = ratings[user]
+      for movie in user_ratings:
+        nodedict[user].neighbors.append(nodedict[movie+'_'+user_ratings[movie]])
+        nodedict[movie+'_'+user_ratings[movie]].neighbors.append(nodedict[user])
+
+    #Adding edges between movies and directors
+    for movie in movies:
+      if movies[movie].director is not None:
+        nodedict[movie].neighbors.append(nodedict[movies[movie].director])
+        nodedict[movies[movie].director].neighbors.append(nodedict[movie])
+
+    #Adding edges between movies and actors
+    for movie in movies:
+      for actor in movies[movie].actors:
+        nodedict[movie].neighbors.append(nodedict[actor])
+        nodedict[actor].neighbors.append(nodedict[movie])
+
+    #Adding edges between movies and genres
+    for movie in movies:
+      for genre in movies[movie].genres:
+        nodedict[movie].neighbors.append(nodedict[genre])
+        nodedict[genre].neighbors.append(nodedict[movie])
+
+    #Adding edges between movie ratings and movies
+    for movie in movies:
+      for rating in range(5):
+        nodedict[movie].neighbors.append(nodedict[movie+'_'+str(rating+1)])
+        nodedict[movie+'_'+str(rating+1)].neighbors.append(nodedict[movie])
     
     
     # Write out the graph

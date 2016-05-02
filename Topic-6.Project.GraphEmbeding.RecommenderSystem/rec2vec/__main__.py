@@ -1,6 +1,6 @@
 import sys
 import random
-from rec2vec import graph
+import graph
 from gensim.models import Word2Vec
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 from time import time
@@ -14,6 +14,9 @@ def process(args):
     # Build the model using DeepWalk and Word2Vec
     G = graph.load_adjacencylist("out.adj", undirected=True)
     # YOUR CODE HERE
+    walks = graph.build_deepwalk_corpus(G, args.number_walks, args.walk_length)
+    model = Word2Vec(walks, size=args.representation_size, window=args.window_size, min_count=5, workers=args.workers)
+
                          
     # Perform some evaluation of the model on the test dataset
     with open("./data/test_user_ratings.dat") as fin:
@@ -36,7 +39,22 @@ def predict_rating(model, nodedict, user, movie):
     
     Returns an integer rating 1-6.
     """
+    
     # YOUR CODE HERE
+    final_rating = 0
+    sim = 0.0
+    for rating in range(1,6):
+        if(movie not in nodedict or movie+'_'+str(rating) not in nodedict):
+            return 1   
+        print "For Movie - ", movie, 'for rating : ', movie+'_'+str(rating)
+        temp_sim = model.similarity(nodedict[movie].id, nodedict[movie+'_'+str(rating)].id)
+        print "For Movie - ", movie, 'for rating : ', movie+'_'+str(rating), 'similarity: ', temp_sim
+        if(temp_sim > sim):
+            sim = temp_sim
+            final_rating = rating
+
+    return final_rating
+
 
 
 
